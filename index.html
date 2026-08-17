@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tíz Szó</title>
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#FAF8F4;          /* warm paper */
+  --surface:#FFFFFF;
+  --surface2:#F1EEE7;
+  --ink:#20241F;
+  --ink-soft:#6B7066;
+  --line:#E3DFD5;
+  --accent:#2E6B4F;      /* hungarian green */
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E4EFE9;
+  --bad:#C0392B;
+  --bad-soft:#F7E6E3;
+  --good:#2E6B4F;
+  --good-soft:#E4EFE9;
+  --shadow:0 1px 3px rgba(32,36,31,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161915; --surface:#20241F; --surface2:#2A2F28;
+    --ink:#E9E7DF; --ink-soft:#9BA194; --line:#3A4038;
+    --accent:#7FBD9C; --accent-ink:#14261D; --accent-soft:#26382F;
+    --bad:#E07A6B; --bad-soft:#3C2723; --good:#7FBD9C; --good-soft:#26382F;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161915; --surface:#20241F; --surface2:#2A2F28;
+  --ink:#E9E7DF; --ink-soft:#9BA194; --line:#3A4038;
+  --accent:#7FBD9C; --accent-ink:#14261D; --accent-soft:#26382F;
+  --bad:#E07A6B; --bad-soft:#3C2723; --good:#7FBD9C; --good-soft:#26382F;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic","Segoe UI",sans-serif;
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:520px;margin:0 auto;padding:20px 16px 64px}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none;padding:0}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.hu{font-family:Georgia,"Times New Roman","Noto Serif KR",serif}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+header .flag{width:22px;height:15px;border-radius:2px;flex:none;
+  background:linear-gradient(to bottom,#CE2939 33%,#F6F3EE 33% 66%,#477050 66%)}
+header h1{font-size:1.15rem;margin:0;letter-spacing:-.01em}
+header h1 small{color:var(--ink-soft);font-weight:400;font-size:.8rem;margin-left:6px}
+.backbtn{margin-left:auto;color:var(--ink-soft);font-size:.9rem;padding:6px 10px;border-radius:8px}
+.backbtn:hover{background:var(--surface2)}
+
+/* ---------- cards / common ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.card h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--ink-soft);margin:0 0 10px;font-weight:600}
+.big-btn{display:block;width:100%;text-align:center;background:var(--accent);color:var(--accent-ink);
+  border-radius:12px;padding:14px;font-size:1.02rem;font-weight:700;margin-top:6px}
+.big-btn:active{transform:translateY(1px)}
+.big-btn.secondary{background:var(--surface2);color:var(--ink)}
+.big-btn.danger-soft{background:var(--bad-soft);color:var(--bad)}
+.big-btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px}
+.row .big-btn{flex:1}
+.muted{color:var(--ink-soft);font-size:.86rem}
+.center{text-align:center}
+
+/* progress */
+.bar{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease}
+.stats{display:flex;justify-content:space-between;font-size:.85rem;color:var(--ink-soft)}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* badge */
+.pill{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 10px;border-radius:99px;
+  background:var(--accent-soft);color:var(--accent)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+
+/* ---------- flashcard ---------- */
+.fc-stage{perspective:1000px;margin:6px 0 14px}
+.fc{position:relative;width:100%;height:300px;transform-style:preserve-3d;
+  transition:transform .45s cubic-bezier(.4,.1,.2,1);cursor:pointer}
+.fc.flipped{transform:rotateY(180deg)}
+@media (prefers-reduced-motion: reduce){
+  .fc{transition:none}
+  .bar i{transition:none}
+}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;text-align:center}
+.fc-back{transform:rotateY(180deg)}
+.fc .emoji{font-size:3.4rem;line-height:1}
+.fc .word{font-size:1.9rem;font-weight:700;letter-spacing:-.01em}
+.fc .pron{color:var(--ink-soft);font-size:.95rem}
+.fc .meaning{font-size:1.5rem;font-weight:700}
+.fc .hint{position:absolute;bottom:12px;left:0;right:0;font-size:.75rem;color:var(--ink-soft)}
+.speak{background:var(--surface2);border-radius:99px;padding:8px 16px;font-size:1rem}
+.fc-nav{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fc-nav button{background:var(--surface2);border-radius:10px;padding:10px 18px;font-weight:600}
+.fc-nav button[disabled]{opacity:.35;cursor:default}
+.dots{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+.dots i{width:7px;height:7px;border-radius:99px;background:var(--line)}
+.dots i.on{background:var(--accent)}
+
+/* ---------- quiz ---------- */
+.q-word{text-align:center;margin:8px 0 4px}
+.q-word .emoji{font-size:2.6rem}
+.q-word .word{font-size:1.7rem;font-weight:700}
+.q-word .pron{color:var(--ink-soft);font-size:.9rem}
+.opts{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.opt{background:var(--surface);border:1.5px solid var(--line);border-radius:11px;
+  padding:13px 15px;text-align:left;font-size:1rem;transition:border-color .12s}
+.opt:hover{border-color:var(--accent)}
+.opt.correct{background:var(--good-soft);border-color:var(--good);font-weight:700}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opt[disabled]{cursor:default}
+.q-top{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--ink-soft)}
+.q-feedback{min-height:1.5em;text-align:center;font-weight:700;margin-top:12px}
+.q-feedback.ok{color:var(--good)}
+.q-feedback.no{color:var(--bad)}
+
+/* ---------- vocab list ---------- */
+.day-group{margin-bottom:18px}
+.day-group h3{font-size:.95rem;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.wlist{display:flex;flex-direction:column;gap:6px}
+.wrow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:9px 12px}
+.wrow .emoji{font-size:1.3rem;flex:none}
+.wrow .txt{flex:1;min-width:0}
+.wrow .hu-w{font-weight:700}
+.wrow .pron{color:var(--ink-soft);font-size:.78rem;margin-left:6px}
+.wrow .ko-w{font-size:.85rem;color:var(--ink-soft)}
+.wrow .sp{flex:none;background:var(--surface2);border-radius:8px;padding:5px 9px}
+.wrow.is-wrong{border-color:var(--bad)}
+.locked{color:var(--ink-soft);font-size:.85rem;background:var(--surface2);
+  border-radius:10px;padding:10px 12px}
+
+/* review strip */
+.review-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+
+/* history */
+.hist{display:flex;flex-direction:column;gap:6px}
+.hist .h-row{display:flex;justify-content:space-between;font-size:.9rem;
+  border-bottom:1px dashed var(--line);padding:5px 2px}
+.hist .h-row:last-child{border-bottom:none}
+.hist b{font-variant-numeric:tabular-nums}
+
+footer{margin-top:34px;text-align:center}
+footer button{color:var(--ink-soft);font-size:.8rem;text-decoration:underline}
+
+.result-emoji{font-size:3.2rem;text-align:center;margin:6px 0}
+.score{font-size:2.2rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums}
+.score small{font-size:1.1rem;color:var(--ink-soft);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="flag" aria-hidden="true"></span>
+    <h1>Tíz Szó<small>하루 열 단어, 헝가리어</small></h1>
+    <button class="backbtn" id="backbtn" hidden>← 홈</button>
+  </header>
+  <main id="app"></main>
+  <footer><button id="resetbtn">진도 초기화</button></footer>
+</div>
+
+<script>
+'use strict';
+/* ================= data : 20일 × 10단어 ================= */
+const W = [
+// d1 인사·기본
+['szia','안녕 (친한 사이 인사)','씨아','👋'],
+['jó reggelt','좋은 아침이에요','요 렉겔트','🌅'],
+['jó napot','안녕하세요 (낮 인사)','요 너포트','☀️'],
+['jó estét','안녕하세요 (저녁 인사)','요 에슈테이트','🌆'],
+['jó éjszakát','잘 자요','요 에이사카트','🌙'],
+['köszönöm','감사합니다','쾨쇠뇜','🙏'],
+['kérem','부탁합니다 / 천만에요','케이렘','🤲'],
+['igen','네','이겐','✅'],
+['nem','아니요','넴','❌'],
+['viszlát','안녕히 가세요 (작별)','비슬라트','🚶'],
+// d2 숫자
+['egy','1, 하나','에지','1️⃣'],
+['kettő','2, 둘','켓퇴','2️⃣'],
+['három','3, 셋','하롬','3️⃣'],
+['négy','4, 넷','네이지','4️⃣'],
+['öt','5, 다섯','외트','5️⃣'],
+['hat','6, 여섯','허트','6️⃣'],
+['hét','7, 일곱 (週 뜻도 있음)','헤이트','7️⃣'],
+['nyolc','8, 여덟','뇰츠','8️⃣'],
+['kilenc','9, 아홉','킬렌츠','9️⃣'],
+['tíz','10, 열','티즈','🔟'],
+// d3 사람·가족
+['ember','사람','엠베르','🧑'],
+['férfi','남자','페이르피','👨'],
+['nő','여자','뇌','👩'],
+['gyerek','아이','제레크','🧒'],
+['család','가족','철라드','👨‍👩‍👧'],
+['anya','엄마','어녀','👩‍🍼'],
+['apa','아빠','어퍼','👨‍🍼'],
+['testvér','형제자매','테슈트베이르','🧑‍🤝‍🧑'],
+['barát','친구','버라트','🤝'],
+['név','이름','네이브','📛'],
+// d4 음식 1
+['víz','물','비즈','💧'],
+['kenyér','빵','케녜이르','🍞'],
+['tej','우유','테이','🥛'],
+['kávé','커피','카베이','☕'],
+['tea','차 (茶)','테아','🍵'],
+['sör','맥주','쇠르','🍺'],
+['bor','와인','보르','🍷'],
+['hús','고기','후쉬','🥩'],
+['hal','생선','헐','🐟'],
+['tojás','달걀','토야쉬','🥚'],
+// d5 음식 2
+['alma','사과','얼머','🍎'],
+['gyümölcs','과일','쥐묄치','🍇'],
+['zöldség','채소','죌드셰이그','🥦'],
+['leves','수프','레베쉬','🍲'],
+['sajt','치즈','셔이트','🧀'],
+['cukor','설탕','추코르','🍬'],
+['só','소금','쇼','🧂'],
+['étterem','식당','에이트테렘','🍽️'],
+['reggeli','아침 식사','렉겔리','🥐'],
+['vacsora','저녁 식사','버초러','🍛'],
+// d6 장소
+['ház','집','하즈','🏠'],
+['iskola','학교','이슈콜러','🏫'],
+['bolt','가게','볼트','🏪'],
+['város','도시','바로쉬','🏙️'],
+['utca','거리, 길','우처','🛣️'],
+['állomás','역 (기차역)','알로마쉬','🚉'],
+['repülőtér','공항','레퓔뢰테이르','🛫'],
+['kórház','병원','코르하즈','🏥'],
+['templom','교회, 성당','템플롬','⛪'],
+['piac','시장','피어츠','🛒'],
+// d7 시간
+['ma','오늘','머','📍'],
+['holnap','내일','홀넙','➡️'],
+['tegnap','어제','테그넙','⬅️'],
+['reggel','아침','렉겔','🌄'],
+['este','저녁','에슈테','🌃'],
+['éjszaka','밤','에이사커','🌌'],
+['óra','시간, 시계','오러','⏰'],
+['perc','분 (시간 단위)','페르츠','⏱️'],
+['év','년, 해','에이브','📅'],
+['hónap','월, 달','호넙','🗓️'],
+// d8 동사 1
+['menni','가다','멘니','🚶‍♂️'],
+['jönni','오다','옌니','🏃‍♂️'],
+['enni','먹다','엔니','😋'],
+['inni','마시다','인니','🥤'],
+['aludni','자다','얼루드니','😴'],
+['beszélni','말하다','베세일니','🗣️'],
+['érteni','이해하다','에이르테니','💡'],
+['tudni','알다, 할 수 있다','투드니','🧠'],
+['szeretni','사랑하다, 좋아하다','세레트니','❤️'],
+['kérni','부탁하다, 요청하다','케이르니','🙋'],
+// d9 동사 2
+['látni','보다','라트니','👀'],
+['hallani','듣다','헐러니','👂'],
+['olvasni','읽다','올버쉬니','📖'],
+['írni','쓰다','이르니','✍️'],
+['dolgozni','일하다','돌고즈니','💼'],
+['tanulni','공부하다, 배우다','터눌니','📚'],
+['vásárolni','쇼핑하다, 사다','바샤롤니','🛍️'],
+['főzni','요리하다','푀즈니','🍳'],
+['futni','달리다','푸트니','🏃'],
+['segíteni','돕다','셰기테니','🤲'],
+// d10 형용사 1
+['jó','좋은','요','👍'],
+['rossz','나쁜','로스','👎'],
+['nagy','큰','너지','🐘'],
+['kicsi','작은','키치','🐜'],
+['új','새로운','우이','✨'],
+['régi','오래된','레이기','🏛️'],
+['szép','아름다운, 예쁜','세이프','🌸'],
+['csúnya','못생긴, 흉한','추녀','🙈'],
+['gyors','빠른','조르쉬','⚡'],
+['lassú','느린','러슈','🐢'],
+// d11 형용사 2
+['meleg','따뜻한, 더운','멜레그','🔥'],
+['hideg','추운, 차가운','히데그','🧊'],
+['drága','비싼','드라거','💎'],
+['olcsó','싼, 저렴한','올초','🏷️'],
+['könnyű','쉬운, 가벼운','쾬뉘','🪶'],
+['nehéz','어려운, 무거운','네헤이즈','🏋️'],
+['boldog','행복한','볼도그','😊'],
+['szomorú','슬픈','소모루','😢'],
+['fáradt','피곤한','파러트','🥱'],
+['éhes','배고픈','에이헤쉬','🍜'],
+// d12 색깔
+['szín','색, 색깔','신','🎨'],
+['piros','빨간','피로쉬','🔴'],
+['kék','파란','케이크','🔵'],
+['zöld','초록의','죌드','🟢'],
+['sárga','노란','샤르거','🟡'],
+['fekete','검은','페케테','⚫'],
+['fehér','흰, 하얀','페헤이르','⚪'],
+['barna','갈색의','버르너','🟤'],
+['narancssárga','주황색의','너런치샤르거','🟠'],
+['lila','보라색의','릴러','🟣'],
+// d13 자연·날씨
+['időjárás','날씨','이되야라쉬','🌦️'],
+['eső','비 (雨)','에쇠','🌧️'],
+['hó','눈 (雪)','호','☃️'],
+['nap','해, 태양 (날 뜻도 있음)','넙','🌞'],
+['szél','바람','세일','💨'],
+['felhő','구름','펠회','☁️'],
+['ég','하늘','에이그','🌠'],
+['fa','나무','퍼','🌳'],
+['virág','꽃','비라그','🌷'],
+['hegy','산','헤지','⛰️'],
+// d14 동물
+['állat','동물','알러트','🐾'],
+['kutya','개','쿠텨','🐶'],
+['macska','고양이','머치커','🐱'],
+['madár','새 (鳥)','머다르','🐦'],
+['ló','말 (동물)','로','🐴'],
+['tehén','소 (동물)','테헤인','🐮'],
+['disznó','돼지','디스노','🐷'],
+['egér','쥐','에게이르','🐭'],
+['medve','곰','메드베','🐻'],
+['nyúl','토끼','뉼','🐰'],
+// d15 몸
+['test','몸','테슈트','🧍'],
+['fej','머리','페이','👤'],
+['kéz','손','케이즈','✋'],
+['láb','다리, 발','라브','🦵'],
+['szem','눈 (眼)','셈','👁️'],
+['fül','귀','퓔','👂🏻'],
+['orr','코','오르','👃'],
+['száj','입','사이','👄'],
+['haj','머리카락','허이','💇'],
+['fog','이, 치아','포그','🦷'],
+// d16 교통
+['autó','자동차','어우토','🚗'],
+['busz','버스','부스','🚌'],
+['vonat','기차','보너트','🚆'],
+['villamos','트램, 전차','빌러모쉬','🚊'],
+['metró','지하철','메트로','🚇'],
+['bicikli','자전거','비치클리','🚲'],
+['repülő','비행기','레퓔뢰','✈️'],
+['hajó','배 (선박)','허요','🚢'],
+['jegy','표, 티켓','예지','🎫'],
+['térkép','지도','테이르케이프','🗺️'],
+// d17 집·사물
+['szoba','방','소버','🛋️'],
+['ajtó','문','어이토','🚪'],
+['ablak','창문','어블러크','🪟'],
+['asztal','탁자, 테이블','어스털','🪑'],
+['szék','의자','세이크','💺'],
+['ágy','침대','아지','🛏️'],
+['könyv','책','쾨니브','📕'],
+['telefon','전화, 휴대폰','텔레폰','📱'],
+['kulcs','열쇠','쿨치','🔑'],
+['pénz','돈','페인즈','💰'],
+// d18 의문사·대명사
+['mi','무엇','미','❓'],
+['ki','누구','키','🕵️'],
+['hol','어디','홀','📍'],
+['mikor','언제','미코르','⏳'],
+['miért','왜','미에이르트','🤔'],
+['hogyan','어떻게','호존','🛠️'],
+['mennyi','얼마나, 몇','멘니','🔢'],
+['én','나','에인','🙋‍♂️'],
+['te','너','테','👉'],
+['ő','그, 그녀','외','👥'],
+// d19 표현
+['elnézést','실례합니다','엘네이제이슈트','🙇'],
+['bocsánat','죄송합니다','보차너트','😔'],
+['egészségedre','건배! / 건강을 위하여','에게이스셰게드레','🥂'],
+['nem értem','이해하지 못했어요','넴 에이르템','😕'],
+['nem tudom','모르겠어요','넴 투돔','🤷'],
+['Hol van a mosdó?','화장실이 어디예요?','홀 번 어 모쉬도','🚻'],
+['Mennyibe kerül?','얼마예요?','멘니베 케륄','💶'],
+['segítség!','도와주세요!','셰기트셰이그','🆘'],
+['szeretlek','사랑해','세레틀레크','💕'],
+['jó étvágyat','맛있게 드세요','요 에이트바저트','🥄'],
+// d20 언어·여행
+['Magyarország','헝가리 (나라)','머저로르사그','🇭🇺'],
+['Dél-Korea','대한민국','데일코레아','🇰🇷'],
+['magyar','헝가리의, 헝가리어','머저르','🏰'],
+['nyelv','언어 (혀 뜻도 있음)','녤브','💬'],
+['szó','단어','소','🔤'],
+['mondat','문장','몬더트','📝'],
+['kérdés','질문','케이르데이쉬','❔'],
+['válasz','대답','발러스','🗨️'],
+['külföldi','외국인, 외국의','퀼푈디','🌍'],
+['utazás','여행','우터자쉬','🧳'],
+].map((w,i)=>({id:i, hu:w[0], ko:w[1], pr:w[2], em:w[3], day:Math.floor(i/10)+1}));
+
+const PER_DAY=10, DAYS=W.length/PER_DAY, TEST_EVERY=5;
+const KEY='tizszo_v1';
+
+/* ================= state ================= */
+const defState = ()=>({completedDays:0, wrongPool:[], testsTaken:[], testHistory:[]});
+let state;
+try{ state = Object.assign(defState(), JSON.parse(localStorage.getItem(KEY)||'{}')); }
+catch(e){ state = defState(); }
+const save = ()=>localStorage.setItem(KEY, JSON.stringify(state));
+
+const currentDay = ()=>Math.min(state.completedDays+1, DAYS);
+const testDue = ()=>state.completedDays>0 && state.completedDays%TEST_EVERY===0
+  && !state.testsTaken.includes(state.completedDays/TEST_EVERY);
+const allDone = ()=>state.completedDays>=DAYS && !testDue();
+const wordsOfDay = d=>W.slice((d-1)*PER_DAY, d*PER_DAY);
+const byId = id=>W[id];
+
+/* ================= utils ================= */
+const $ = s=>document.querySelector(s);
+const app = document.getElementById('app');
+const backbtn = document.getElementById('backbtn');
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* speech */
+let huVoice=null;
+function pickVoice(){ if(!('speechSynthesis' in window))return;
+  const v=speechSynthesis.getVoices().find(v=>(v.lang||'').toLowerCase().startsWith('hu'));
+  if(v)huVoice=v;
+}
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function speak(t){
+  if(!('speechSynthesis' in window))return;
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang='hu-HU'; if(huVoice)u.voice=huVoice; u.rate=0.82;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+window.speak=speak;
+
+function view(html, showBack){
+  app.innerHTML=html;
+  backbtn.hidden=!showBack;
+  window.scrollTo(0,0);
+}
+backbtn.addEventListener('click',()=>renderHome());
+
+/* ================= home ================= */
+function renderHome(){
+  const day=currentDay(), learned=state.completedDays*PER_DAY;
+  const pct=Math.round(state.completedDays/DAYS*100);
+  const block=state.completedDays/TEST_EVERY;
+
+  let action='';
+  if(allDone()){
+    action=`<p class="center" style="font-size:2rem;margin:4px 0">🎉</p>
+      <p class="center"><b>200단어 완주! Gratulálok!</b></p>`;
+    if(state.wrongPool.length)
+      action+=`<button class="big-btn danger-soft" id="go-wrongtest">오답 ${state.wrongPool.length}개 정리 테스트</button>`;
+  }else if(testDue()){
+    action=`<p class="muted center">Day ${state.completedDays-4}–${state.completedDays} 단어를 테스트해야<br>다음 학습이 열립니다.</p>
+      <button class="big-btn" id="go-test">📝 테스트 ${block} 시작
+      ${state.wrongPool.length?`(+ 이전 오답 ${state.wrongPool.length}개)`:''}</button>`;
+  }else{
+    action=`<button class="big-btn" id="go-learn">📖 Day ${day} 학습 시작 — 오늘의 10단어</button>`;
+  }
+
+  const nextTestIn = testDue()?0:(TEST_EVERY - state.completedDays%TEST_EVERY);
+
+  view(`
+  <section class="card">
+    <h2>진행 현황</h2>
+    <div class="stats"><span>Day <b>${Math.min(state.completedDays,DAYS)}</b> / ${DAYS} 완료</span>
+      <span>배운 단어 <b>${learned}</b> / ${W.length}</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="stats"><span>${allDone()?'완주':`다음 테스트까지 ${testDue()?0:nextTestIn}일`}</span>
+      <span class="${state.wrongPool.length?'':''}">오답 노트 <b>${state.wrongPool.length}</b>개</span></div>
+  </section>
+  <section class="card">${action}</section>
+  ${state.completedDays>0?`
+  <section class="card">
+    <h2>복습 · 단어장</h2>
+    <div class="row">
+      <button class="big-btn secondary" id="go-vocab">📒 단어장</button>
+      ${state.wrongPool.length&&!allDone()?`<button class="big-btn danger-soft" id="go-wrongs">🔁 오답 보기</button>`:''}
+    </div>
+  </section>`:''}
+  ${state.testHistory.length?`
+  <section class="card">
+    <h2>테스트 기록</h2>
+    <div class="hist">${state.testHistory.map(h=>
+      `<div class="h-row"><span>${h.label}</span><b>${h.score} / ${h.total}</b></div>`).join('')}
+    </div>
+  </section>`:''}
+  `,false);
+
+  const on=(id,fn)=>{const el=document.getElementById(id); if(el)el.addEventListener('click',fn);};
+  on('go-learn',()=>startLearn());
+  on('go-test',()=>testIntro(block));
+  on('go-wrongtest',()=>testIntro('wrong'));
+  on('go-vocab',()=>renderVocab(false));
+  on('go-wrongs',()=>renderVocab(true));
+}
+
+/* ================= learn : 복습 → 카드 → 확인 퀴즈 ================= */
+function startLearn(){
+  const day=currentDay();
+  if(day>1) renderReview(day);
+  else renderCards(day);
+}
+
+function wordRow(w, flagWrong){
+  return `<div class="wrow${flagWrong?' is-wrong':''}">
+    <span class="emoji">${w.em}</span>
+    <span class="txt"><span class="hu hu-w">${esc(w.hu)}</span><span class="pron">[${esc(w.pr)}]</span><br>
+    <span class="ko-w">${esc(w.ko)}</span></span>
+    <button class="sp" onclick="speak('${esc(w.hu).replace(/'/g,"\\'")}')" aria-label="발음 듣기">🔊</button>
+  </div>`;
+}
+
+function renderReview(day){
+  const prev=wordsOfDay(day-1);
+  view(`
+  <section class="card">
+    <h2>Day ${day} · 시작 전 복습</h2>
+    <p class="muted">어제 배운 단어를 한 번 훑고 시작하세요. 뜻을 가리고 먼저 떠올려 보면 더 좋아요.</p>
+    <div class="review-list">${prev.map(w=>wordRow(w)).join('')}</div>
+    <button class="big-btn" id="to-cards">오늘의 새 단어 보러 가기 →</button>
+  </section>`,true);
+  document.getElementById('to-cards').addEventListener('click',()=>renderCards(day));
+}
+
+function renderCards(day){
+  const words=wordsOfDay(day);
+  let idx=0, flipped=false, maxSeen=0;
+
+  function draw(){
+    const w=words[idx];
+    view(`
+    <section>
+      <div class="q-top"><span>Day ${day} · 새 단어</span><span>${idx+1} / ${words.length}</span></div>
+      <div class="fc-stage">
+        <div class="fc${flipped?' flipped':''}" id="fc" role="button" tabindex="0" aria-label="카드 뒤집기">
+          <div class="fc-face">
+            <div class="emoji">${w.em}</div>
+            <div class="hu word">${esc(w.hu)}</div>
+            <div class="pron">[${esc(w.pr)}]</div>
+            <button class="speak" id="sp1">🔊 발음</button>
+            <div class="hint">뜻을 먼저 떠올린 뒤, 탭해서 확인</div>
+          </div>
+          <div class="fc-face fc-back">
+            <div class="emoji">${w.em}</div>
+            <div class="meaning">${esc(w.ko)}</div>
+            <div class="pron hu">${esc(w.hu)} [${esc(w.pr)}]</div>
+            <div class="hint">탭하면 앞면으로</div>
+          </div>
+        </div>
+      </div>
+      <div class="fc-nav">
+        <button id="prev" ${idx===0?'disabled':''}>← 이전</button>
+        <div class="dots">${words.map((_,i)=>`<i class="${i<=maxSeen?'on':''}"></i>`).join('')}</div>
+        <button id="next">${idx<words.length-1?'다음 →':'다 봤어요'}</button>
+      </div>
+      ${maxSeen>=words.length-1?`<button class="big-btn" style="margin-top:18px" id="to-quiz">✏️ 확인 퀴즈 (10문제)</button>`:''}
+    </section>`,true);
+
+    const fc=document.getElementById('fc');
+    const flip=()=>{flipped=!flipped;fc.classList.toggle('flipped',flipped);};
+    fc.addEventListener('click',e=>{ if(e.target.id!=='sp1') flip(); });
+    fc.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();} });
+    document.getElementById('sp1').addEventListener('click',e=>{e.stopPropagation();speak(w.hu);});
+    document.getElementById('prev').addEventListener('click',()=>{if(idx>0){idx--;flipped=false;draw();}});
+    document.getElementById('next').addEventListener('click',()=>{
+      if(idx<words.length-1){idx++;maxSeen=Math.max(maxSeen,idx);flipped=false;draw();}
+      else{maxSeen=words.length-1;draw();}
+    });
+    const tq=document.getElementById('to-quiz');
+    if(tq)tq.addEventListener('click',()=>dayQuiz(day));
+  }
+  draw();
+}
+
+/* 오늘 배운 10단어 확인 퀴즈 — 틀리면 맞힐 때까지 반복 */
+function dayQuiz(day){
+  const words=wordsOfDay(day);
+  let queue=shuffle(words.map(w=>w.id));
+  let firstTryWrong=new Set(), asked=0;
+
+  function next(){
+    if(!queue.length){ finishDay(day, firstTryWrong.size); return; }
+    const w=byId(queue[0]);
+    asked++;
+    const opts=makeOptions(w,'ko');
+    view(`
+    <section>
+      <div class="q-top"><span>Day ${day} · 확인 퀴즈</span><span>남은 문제 ${queue.length}</span></div>
+      <div class="q-word">
+        <div class="emoji">${w.em}</div>
+        <div class="hu word">${esc(w.hu)}</div>
+        <button class="speak" onclick="speak('${esc(w.hu).replace(/'/g,"\\'")}')">🔊</button>
+      </div>
+      <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o.text)}</button>`).join('')}</div>
+      <div class="q-feedback" id="fb"></div>
+    </section>`,true);
+
+    document.querySelectorAll('.opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const i=+btn.dataset.i, ok=opts[i].correct;
+        document.querySelectorAll('.opt').forEach((b,j)=>{
+          b.disabled=true;
+          if(opts[j].correct)b.classList.add('correct');
+        });
+        const fb=document.getElementById('fb');
+        if(ok){
+          fb.textContent='맞았어요!'; fb.className='q-feedback ok';
+          queue.shift();
+        }else{
+          btn.classList.add('wrong');
+          fb.textContent='다시 나올 거예요. 정답을 확인하세요.'; fb.className='q-feedback no';
+          firstTryWrong.add(w.id);
+          queue.push(queue.shift());   // 뒤로 보내 재출제
+        }
+        setTimeout(next, ok?700:1600);
+      });
+    });
+  }
+  next();
+}
+
+function finishDay(day, wrongCnt){
+  state.completedDays=Math.max(state.completedDays, day);
+  save();
+  const due=testDue();
+  view(`
+  <section class="card center">
+    <div class="result-emoji">🌟</div>
+    <p><b>Day ${day} 완료!</b></p>
+    <p class="muted">확인 퀴즈에서 한 번에 못 맞힌 단어: ${wrongCnt}개<br>내일 시작할 때 오늘 단어를 다시 복습하게 됩니다.</p>
+    ${due?`<button class="big-btn" id="nx">📝 테스트가 열렸어요 — 지금 보기</button>`
+        :`<button class="big-btn" id="nx">홈으로</button>`}
+  </section>`,false);
+  document.getElementById('nx').addEventListener('click',()=>due?testIntro(state.completedDays/TEST_EVERY):renderHome());
+}
+
+/* ================= test ================= */
+/* block: 1..4 → 해당 5일치 50단어 + 이전 오답 / 'wrong' → 오답만 */
+function testWords(block){
+  if(block==='wrong') return state.wrongPool.slice();
+  const start=(block-1)*TEST_EVERY*PER_DAY, end=block*TEST_EVERY*PER_DAY;
+  const ids=new Set(W.slice(start,end).map(w=>w.id));
+  state.wrongPool.forEach(id=>ids.add(id));
+  return [...ids];
+}
+
+function testIntro(block){
+  const ids=testWords(block);
+  const isWrong=block==='wrong';
+  const label=isWrong?'오답 정리 테스트':`테스트 ${block} (Day ${(block-1)*5+1}–${block*5})`;
+  const carried=isWrong?0:ids.length-TEST_EVERY*PER_DAY;
+  view(`
+  <section class="card">
+    <h2>${label}</h2>
+    <p class="muted">총 <b>${ids.length}문제</b> — ${isWrong?'지금까지 틀린 단어만 다시 봅니다.':`최근 5일 단어 50개${carried>0?` + 이전 테스트 오답 ${carried}개`:''}.`}<br>
+    헝가리어→뜻, 뜻→헝가리어가 섞여 나옵니다.<br>
+    틀린 단어는 다음 테스트에 다시 포함됩니다.</p>
+    <button class="big-btn" id="go">시작</button>
+  </section>`,true);
+  document.getElementById('go').addEventListener('click',()=>runTest(block,ids));
+}
+
+function runTest(block, ids){
+  const order=shuffle(ids);
+  let i=0; const right=[], wrong=[];
+
+  function next(){
+    if(i>=order.length){ finishTest(block, right, wrong); return; }
+    const w=byId(order[i]);
+    const dir=Math.random()<0.5?'ko':'hu';   // ko: hu→뜻 / hu: 뜻→hu
+    const opts=makeOptions(w,dir);
+    const isCarried=block!=='wrong'&&state.wrongPool.includes(w.id);
+    view(`
+    <section>
+      <div class="q-top"><span>${block==='wrong'?'오답 테스트':'테스트 '+block}
+        ${isCarried?'<span class="pill bad">이월 오답</span>':''}</span>
+        <span>${i+1} / ${order.length}</span></div>
+      <div class="q-word">
+        ${dir==='ko'?`
+          <div class="emoji">${w.em}</div>
+          <div class="hu word">${esc(w.hu)}</div>
+          <button class="speak" onclick="speak('${esc(w.hu).replace(/'/g,"\\'")}')">🔊</button>
+          <p class="muted">뜻을 고르세요</p>`
+        :`
+          <div class="emoji">${w.em}</div>
+          <div class="word">${esc(w.ko)}</div>
+          <p class="muted">헝가리어를 고르세요</p>`}
+      </div>
+      <div class="opts">${opts.map((o,j)=>`<button class="opt${dir==='hu'?' hu':''}" data-i="${j}">${esc(o.text)}</button>`).join('')}</div>
+      <div class="q-feedback" id="fb"></div>
+    </section>`,true);
+
+    document.querySelectorAll('.opt').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const j=+btn.dataset.i, ok=opts[j].correct;
+        document.querySelectorAll('.opt').forEach((b,k)=>{
+          b.disabled=true; if(opts[k].correct)b.classList.add('correct');
+        });
+        const fb=document.getElementById('fb');
+        if(ok){ right.push(w.id); fb.textContent='정답!'; fb.className='q-feedback ok'; }
+        else{ wrong.push(w.id); btn.classList.add('wrong');
+          fb.textContent=`오답 — ${w.hu} = ${w.ko}`; fb.className='q-feedback no'; }
+        if(dir==='hu') speak(w.hu);
+        i++;
+        setTimeout(next, ok?650:1800);
+      });
+    });
+  }
+  next();
+}
+
+function finishTest(block, right, wrong){
+  // 오답 이월 규칙: 맞힌 단어는 오답 노트에서 제거, 틀린 단어는 추가
+  state.wrongPool=state.wrongPool.filter(id=>!right.includes(id));
+  wrong.forEach(id=>{ if(!state.wrongPool.includes(id)) state.wrongPool.push(id); });
+  const total=right.length+wrong.length;
+  const label=block==='wrong'?'오답 정리':`테스트 ${block}`;
+  if(block!=='wrong'&&!state.testsTaken.includes(block)) state.testsTaken.push(block);
+  state.testHistory.push({label, score:right.length, total});
+  save();
+  const pct=Math.round(right.length/total*100);
+  view(`
+  <section class="card center">
+    <div class="result-emoji">${pct===100?'🏆':pct>=80?'👏':'💪'}</div>
+    <p class="score">${right.length}<small> / ${total}</small></p>
+    <p class="muted">${wrong.length?`틀린 ${wrong.length}개는 오답 노트에 담겨<br>다음 테스트에 다시 나옵니다.`:'전부 정답! 오답 이월 없음.'}</p>
+    ${wrong.length?`<div class="review-list" style="margin-top:12px;text-align:left">${wrong.map(id=>wordRow(byId(id),true)).join('')}</div>`:''}
+    <button class="big-btn" id="home">홈으로</button>
+  </section>`,false);
+  document.getElementById('home').addEventListener('click',renderHome);
+}
+
+/* 보기 4개 생성: dir==='ko' → 뜻 고르기 / 'hu' → 헝가리어 고르기 */
+function makeOptions(w, dir){
+  const field=dir==='ko'?'ko':'hu';
+  const wrongPool=shuffle(W.filter(x=>x.id!==w.id && x[field]!==w[field])).slice(0,3);
+  return shuffle([
+    {text:w[field], correct:true},
+    ...wrongPool.map(x=>({text:x[field], correct:false})),
+  ]);
+}
+
+/* ================= vocab list ================= */
+function renderVocab(onlyWrong){
+  const maxDay=Math.max(state.completedDays, state.completedDays<DAYS?currentDay():DAYS);
+  let html='';
+  if(onlyWrong){
+    html=`<section class="card"><h2>오답 노트 (${state.wrongPool.length})</h2>
+      <div class="wlist">${state.wrongPool.map(id=>wordRow(byId(id),true)).join('')||'<p class="muted">비어 있어요!</p>'}</div></section>`;
+  }else{
+    for(let d=1;d<=DAYS;d++){
+      if(d>maxDay){
+        html+=`<div class="day-group"><h3>Day ${d}</h3><div class="locked">🔒 아직 잠겨 있어요</div></div>`;
+        continue;
+      }
+      html+=`<div class="day-group"><h3>Day ${d}
+        ${d<=state.completedDays?'<span class="pill">완료</span>':'<span class="pill" style="background:var(--surface2);color:var(--ink-soft)">오늘</span>'}</h3>
+        <div class="wlist">${wordsOfDay(d).map(w=>wordRow(w,state.wrongPool.includes(w.id))).join('')}</div></div>`;
+    }
+  }
+  view(html,true);
+}
+
+/* ================= reset ================= */
+document.getElementById('resetbtn').addEventListener('click',()=>{
+  if(confirm('모든 진도와 오답 기록을 지울까요?')){
+    state=defState(); save(); renderHome();
+  }
+});
+
+renderHome();
+</script>
+</body>
+</html>
