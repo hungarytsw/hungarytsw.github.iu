@@ -103,10 +103,12 @@ header h1 small{color:var(--ink-soft);font-weight:400;font-size:.8rem;margin-lef
 .fc-back{transform:rotateY(180deg)}
 .fc .emoji{font-size:3.4rem;line-height:1}
 .fc .word{font-size:1.9rem;font-weight:700;letter-spacing:-.01em}
-.fc .pron{color:var(--ink-soft);font-size:.95rem}
 .fc .meaning{font-size:1.5rem;font-weight:700}
 .fc .hint{position:absolute;bottom:12px;left:0;right:0;font-size:.75rem;color:var(--ink-soft)}
-.speak{background:var(--surface2);border-radius:99px;padding:8px 16px;font-size:1rem}
+.mark-row{display:flex;gap:10px;width:100%;max-width:300px;margin-top:10px}
+.mk-btn{flex:1;border-radius:10px;padding:11px 6px;font-weight:700;font-size:.95rem}
+.mk-btn.no{background:var(--bad-soft);color:var(--bad)}
+.mk-btn.yes{background:var(--good-soft);color:var(--good)}
 .fc-nav{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .fc-nav button{background:var(--surface2);border-radius:10px;padding:10px 18px;font-weight:600}
 .fc-nav button[disabled]{opacity:.35;cursor:default}
@@ -118,7 +120,6 @@ header h1 small{color:var(--ink-soft);font-weight:400;font-size:.8rem;margin-lef
 .q-word{text-align:center;margin:8px 0 4px}
 .q-word .emoji{font-size:2.6rem}
 .q-word .word{font-size:1.7rem;font-weight:700}
-.q-word .pron{color:var(--ink-soft);font-size:.9rem}
 .opts{display:flex;flex-direction:column;gap:9px;margin-top:16px}
 .opt{background:var(--surface);border:1.5px solid var(--line);border-radius:11px;
   padding:13px 15px;text-align:left;font-size:1rem;transition:border-color .12s}
@@ -140,10 +141,17 @@ header h1 small{color:var(--ink-soft);font-weight:400;font-size:.8rem;margin-lef
 .wrow .emoji{font-size:1.3rem;flex:none}
 .wrow .txt{flex:1;min-width:0}
 .wrow .hu-w{font-weight:700}
-.wrow .pron{color:var(--ink-soft);font-size:.78rem;margin-left:6px}
 .wrow .ko-w{font-size:.85rem;color:var(--ink-soft)}
-.wrow .sp{flex:none;background:var(--surface2);border-radius:8px;padding:5px 9px}
+.wrow .mk{flex:none;width:36px;height:36px;border-radius:9px;background:var(--surface2);
+  color:var(--ink-soft);font-weight:800;font-size:1rem}
+.wrow .mk.known{background:var(--good-soft);color:var(--good)}
+.wrow .mk.unknown{background:var(--bad-soft);color:var(--bad)}
 .wrow.is-wrong{border-color:var(--bad)}
+
+/* filter chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:6px 13px;border-radius:99px;background:var(--surface2);font-size:.85rem;font-weight:600;color:var(--ink-soft)}
+.chip.on{background:var(--accent);color:var(--accent-ink)}
 .locked{color:var(--ink-soft);font-size:.85rem;background:var(--surface2);
   border-radius:10px;padding:10px 12px}
 
@@ -181,241 +189,355 @@ footer button{color:var(--ink-soft);font-size:.8rem;text-decoration:underline}
 /* ================= data : 20일 × 10단어 ================= */
 const W = [
 // d1 인사·기본
-['szia','안녕 (친한 사이 인사)','씨아','👋'],
-['jó reggelt','좋은 아침이에요','요 렉겔트','🌅'],
-['jó napot','안녕하세요 (낮 인사)','요 너포트','☀️'],
-['jó estét','안녕하세요 (저녁 인사)','요 에슈테이트','🌆'],
-['jó éjszakát','잘 자요','요 에이사카트','🌙'],
-['köszönöm','감사합니다','쾨쇠뇜','🙏'],
-['kérem','부탁합니다 / 천만에요','케이렘','🤲'],
-['igen','네','이겐','✅'],
-['nem','아니요','넴','❌'],
-['viszlát','안녕히 가세요 (작별)','비슬라트','🚶'],
+['szia','안녕 (친한 사이 인사)','👋'],
+['jó reggelt','좋은 아침이에요','🌅'],
+['jó napot','안녕하세요 (낮 인사)','☀️'],
+['jó estét','안녕하세요 (저녁 인사)','🌆'],
+['jó éjszakát','잘 자요','🌙'],
+['köszönöm','감사합니다','🙏'],
+['kérem','부탁합니다 / 천만에요','🤲'],
+['igen','네','✅'],
+['nem','아니요','❌'],
+['viszlát','안녕히 가세요 (작별)','🚶'],
 // d2 숫자
-['egy','1, 하나','에지','1️⃣'],
-['kettő','2, 둘','켓퇴','2️⃣'],
-['három','3, 셋','하롬','3️⃣'],
-['négy','4, 넷','네이지','4️⃣'],
-['öt','5, 다섯','외트','5️⃣'],
-['hat','6, 여섯','허트','6️⃣'],
-['hét','7, 일곱 (週 뜻도 있음)','헤이트','7️⃣'],
-['nyolc','8, 여덟','뇰츠','8️⃣'],
-['kilenc','9, 아홉','킬렌츠','9️⃣'],
-['tíz','10, 열','티즈','🔟'],
+['egy','1, 하나','1️⃣'],
+['kettő','2, 둘','2️⃣'],
+['három','3, 셋','3️⃣'],
+['négy','4, 넷','4️⃣'],
+['öt','5, 다섯','5️⃣'],
+['hat','6, 여섯','6️⃣'],
+['hét','7, 일곱 (週 뜻도 있음)','7️⃣'],
+['nyolc','8, 여덟','8️⃣'],
+['kilenc','9, 아홉','9️⃣'],
+['tíz','10, 열','🔟'],
 // d3 사람·가족
-['ember','사람','엠베르','🧑'],
-['férfi','남자','페이르피','👨'],
-['nő','여자','뇌','👩'],
-['gyerek','아이','제레크','🧒'],
-['család','가족','철라드','👨‍👩‍👧'],
-['anya','엄마','어녀','👩‍🍼'],
-['apa','아빠','어퍼','👨‍🍼'],
-['testvér','형제자매','테슈트베이르','🧑‍🤝‍🧑'],
-['barát','친구','버라트','🤝'],
-['név','이름','네이브','📛'],
+['ember','사람','🧑'],
+['férfi','남자','👨'],
+['nő','여자','👩'],
+['gyerek','아이','🧒'],
+['család','가족','👨‍👩‍👧'],
+['anya','엄마','👩‍🍼'],
+['apa','아빠','👨‍🍼'],
+['testvér','형제자매','🧑‍🤝‍🧑'],
+['barát','친구','🤝'],
+['név','이름','📛'],
 // d4 음식 1
-['víz','물','비즈','💧'],
-['kenyér','빵','케녜이르','🍞'],
-['tej','우유','테이','🥛'],
-['kávé','커피','카베이','☕'],
-['tea','차 (茶)','테아','🍵'],
-['sör','맥주','쇠르','🍺'],
-['bor','와인','보르','🍷'],
-['hús','고기','후쉬','🥩'],
-['hal','생선','헐','🐟'],
-['tojás','달걀','토야쉬','🥚'],
+['víz','물','💧'],
+['kenyér','빵','🍞'],
+['tej','우유','🥛'],
+['kávé','커피','☕'],
+['tea','차 (茶)','🍵'],
+['sör','맥주','🍺'],
+['bor','와인','🍷'],
+['hús','고기','🥩'],
+['hal','생선','🐟'],
+['tojás','달걀','🥚'],
 // d5 음식 2
-['alma','사과','얼머','🍎'],
-['gyümölcs','과일','쥐묄치','🍇'],
-['zöldség','채소','죌드셰이그','🥦'],
-['leves','수프','레베쉬','🍲'],
-['sajt','치즈','셔이트','🧀'],
-['cukor','설탕','추코르','🍬'],
-['só','소금','쇼','🧂'],
-['étterem','식당','에이트테렘','🍽️'],
-['reggeli','아침 식사','렉겔리','🥐'],
-['vacsora','저녁 식사','버초러','🍛'],
+['alma','사과','🍎'],
+['gyümölcs','과일','🍇'],
+['zöldség','채소','🥦'],
+['leves','수프','🍲'],
+['sajt','치즈','🧀'],
+['cukor','설탕','🍬'],
+['só','소금','🧂'],
+['étterem','식당','🍽️'],
+['reggeli','아침 식사','🥐'],
+['vacsora','저녁 식사','🍛'],
 // d6 장소
-['ház','집','하즈','🏠'],
-['iskola','학교','이슈콜러','🏫'],
-['bolt','가게','볼트','🏪'],
-['város','도시','바로쉬','🏙️'],
-['utca','거리, 길','우처','🛣️'],
-['állomás','역 (기차역)','알로마쉬','🚉'],
-['repülőtér','공항','레퓔뢰테이르','🛫'],
-['kórház','병원','코르하즈','🏥'],
-['templom','교회, 성당','템플롬','⛪'],
-['piac','시장','피어츠','🛒'],
+['ház','집','🏠'],
+['iskola','학교','🏫'],
+['bolt','가게','🏪'],
+['város','도시','🏙️'],
+['utca','거리, 길','🛣️'],
+['állomás','역 (기차역)','🚉'],
+['repülőtér','공항','🛫'],
+['kórház','병원','🏥'],
+['templom','교회, 성당','⛪'],
+['piac','시장','🛒'],
 // d7 시간
-['ma','오늘','머','📍'],
-['holnap','내일','홀넙','➡️'],
-['tegnap','어제','테그넙','⬅️'],
-['reggel','아침','렉겔','🌄'],
-['este','저녁','에슈테','🌃'],
-['éjszaka','밤','에이사커','🌌'],
-['óra','시간, 시계','오러','⏰'],
-['perc','분 (시간 단위)','페르츠','⏱️'],
-['év','년, 해','에이브','📅'],
-['hónap','월, 달','호넙','🗓️'],
+['ma','오늘','📍'],
+['holnap','내일','➡️'],
+['tegnap','어제','⬅️'],
+['reggel','아침','🌄'],
+['este','저녁','🌃'],
+['éjszaka','밤','🌌'],
+['óra','시간, 시계','⏰'],
+['perc','분 (시간 단위)','⏱️'],
+['év','년, 해','📅'],
+['hónap','월, 달','🗓️'],
 // d8 동사 1
-['menni','가다','멘니','🚶‍♂️'],
-['jönni','오다','옌니','🏃‍♂️'],
-['enni','먹다','엔니','😋'],
-['inni','마시다','인니','🥤'],
-['aludni','자다','얼루드니','😴'],
-['beszélni','말하다','베세일니','🗣️'],
-['érteni','이해하다','에이르테니','💡'],
-['tudni','알다, 할 수 있다','투드니','🧠'],
-['szeretni','사랑하다, 좋아하다','세레트니','❤️'],
-['kérni','부탁하다, 요청하다','케이르니','🙋'],
+['menni','가다','🚶‍♂️'],
+['jönni','오다','🏃‍♂️'],
+['enni','먹다','😋'],
+['inni','마시다','🥤'],
+['aludni','자다','😴'],
+['beszélni','말하다','🗣️'],
+['érteni','이해하다','💡'],
+['tudni','알다, 할 수 있다','🧠'],
+['szeretni','사랑하다, 좋아하다','❤️'],
+['kérni','부탁하다, 요청하다','🙋'],
 // d9 동사 2
-['látni','보다','라트니','👀'],
-['hallani','듣다','헐러니','👂'],
-['olvasni','읽다','올버쉬니','📖'],
-['írni','쓰다','이르니','✍️'],
-['dolgozni','일하다','돌고즈니','💼'],
-['tanulni','공부하다, 배우다','터눌니','📚'],
-['vásárolni','쇼핑하다, 사다','바샤롤니','🛍️'],
-['főzni','요리하다','푀즈니','🍳'],
-['futni','달리다','푸트니','🏃'],
-['segíteni','돕다','셰기테니','🤲'],
+['látni','보다','👀'],
+['hallani','듣다','👂'],
+['olvasni','읽다','📖'],
+['írni','쓰다','✍️'],
+['dolgozni','일하다','💼'],
+['tanulni','공부하다, 배우다','📚'],
+['vásárolni','쇼핑하다, 사다','🛍️'],
+['főzni','요리하다','🍳'],
+['futni','달리다','🏃'],
+['segíteni','돕다','🤲'],
 // d10 형용사 1
-['jó','좋은','요','👍'],
-['rossz','나쁜','로스','👎'],
-['nagy','큰','너지','🐘'],
-['kicsi','작은','키치','🐜'],
-['új','새로운','우이','✨'],
-['régi','오래된','레이기','🏛️'],
-['szép','아름다운, 예쁜','세이프','🌸'],
-['csúnya','못생긴, 흉한','추녀','🙈'],
-['gyors','빠른','조르쉬','⚡'],
-['lassú','느린','러슈','🐢'],
+['jó','좋은','👍'],
+['rossz','나쁜','👎'],
+['nagy','큰','🐘'],
+['kicsi','작은','🐜'],
+['új','새로운','✨'],
+['régi','오래된','🏛️'],
+['szép','아름다운, 예쁜','🌸'],
+['csúnya','못생긴, 흉한','🙈'],
+['gyors','빠른','⚡'],
+['lassú','느린','🐢'],
 // d11 형용사 2
-['meleg','따뜻한, 더운','멜레그','🔥'],
-['hideg','추운, 차가운','히데그','🧊'],
-['drága','비싼','드라거','💎'],
-['olcsó','싼, 저렴한','올초','🏷️'],
-['könnyű','쉬운, 가벼운','쾬뉘','🪶'],
-['nehéz','어려운, 무거운','네헤이즈','🏋️'],
-['boldog','행복한','볼도그','😊'],
-['szomorú','슬픈','소모루','😢'],
-['fáradt','피곤한','파러트','🥱'],
-['éhes','배고픈','에이헤쉬','🍜'],
+['meleg','따뜻한, 더운','🔥'],
+['hideg','추운, 차가운','🧊'],
+['drága','비싼','💎'],
+['olcsó','싼, 저렴한','🏷️'],
+['könnyű','쉬운, 가벼운','🪶'],
+['nehéz','어려운, 무거운','🏋️'],
+['boldog','행복한','😊'],
+['szomorú','슬픈','😢'],
+['fáradt','피곤한','🥱'],
+['éhes','배고픈','🍜'],
 // d12 색깔
-['szín','색, 색깔','신','🎨'],
-['piros','빨간','피로쉬','🔴'],
-['kék','파란','케이크','🔵'],
-['zöld','초록의','죌드','🟢'],
-['sárga','노란','샤르거','🟡'],
-['fekete','검은','페케테','⚫'],
-['fehér','흰, 하얀','페헤이르','⚪'],
-['barna','갈색의','버르너','🟤'],
-['narancssárga','주황색의','너런치샤르거','🟠'],
-['lila','보라색의','릴러','🟣'],
+['szín','색, 색깔','🎨'],
+['piros','빨간','🔴'],
+['kék','파란','🔵'],
+['zöld','초록의','🟢'],
+['sárga','노란','🟡'],
+['fekete','검은','⚫'],
+['fehér','흰, 하얀','⚪'],
+['barna','갈색의','🟤'],
+['narancssárga','주황색의','🟠'],
+['lila','보라색의','🟣'],
 // d13 자연·날씨
-['időjárás','날씨','이되야라쉬','🌦️'],
-['eső','비 (雨)','에쇠','🌧️'],
-['hó','눈 (雪)','호','☃️'],
-['nap','해, 태양 (날 뜻도 있음)','넙','🌞'],
-['szél','바람','세일','💨'],
-['felhő','구름','펠회','☁️'],
-['ég','하늘','에이그','🌠'],
-['fa','나무','퍼','🌳'],
-['virág','꽃','비라그','🌷'],
-['hegy','산','헤지','⛰️'],
+['időjárás','날씨','🌦️'],
+['eső','비 (雨)','🌧️'],
+['hó','눈 (雪)','☃️'],
+['nap','해, 태양 (날 뜻도 있음)','🌞'],
+['szél','바람','💨'],
+['felhő','구름','☁️'],
+['ég','하늘','🌠'],
+['fa','나무','🌳'],
+['virág','꽃','🌷'],
+['hegy','산','⛰️'],
 // d14 동물
-['állat','동물','알러트','🐾'],
-['kutya','개','쿠텨','🐶'],
-['macska','고양이','머치커','🐱'],
-['madár','새 (鳥)','머다르','🐦'],
-['ló','말 (동물)','로','🐴'],
-['tehén','소 (동물)','테헤인','🐮'],
-['disznó','돼지','디스노','🐷'],
-['egér','쥐','에게이르','🐭'],
-['medve','곰','메드베','🐻'],
-['nyúl','토끼','뉼','🐰'],
+['állat','동물','🐾'],
+['kutya','개','🐶'],
+['macska','고양이','🐱'],
+['madár','새 (鳥)','🐦'],
+['ló','말 (동물)','🐴'],
+['tehén','소 (동물)','🐮'],
+['disznó','돼지','🐷'],
+['egér','쥐','🐭'],
+['medve','곰','🐻'],
+['nyúl','토끼','🐰'],
 // d15 몸
-['test','몸','테슈트','🧍'],
-['fej','머리','페이','👤'],
-['kéz','손','케이즈','✋'],
-['láb','다리, 발','라브','🦵'],
-['szem','눈 (眼)','셈','👁️'],
-['fül','귀','퓔','👂🏻'],
-['orr','코','오르','👃'],
-['száj','입','사이','👄'],
-['haj','머리카락','허이','💇'],
-['fog','이, 치아','포그','🦷'],
+['test','몸','🧍'],
+['fej','머리','👤'],
+['kéz','손','✋'],
+['láb','다리, 발','🦵'],
+['szem','눈 (眼)','👁️'],
+['fül','귀','👂🏻'],
+['orr','코','👃'],
+['száj','입','👄'],
+['haj','머리카락','💇'],
+['fog','이, 치아','🦷'],
 // d16 교통
-['autó','자동차','어우토','🚗'],
-['busz','버스','부스','🚌'],
-['vonat','기차','보너트','🚆'],
-['villamos','트램, 전차','빌러모쉬','🚊'],
-['metró','지하철','메트로','🚇'],
-['bicikli','자전거','비치클리','🚲'],
-['repülő','비행기','레퓔뢰','✈️'],
-['hajó','배 (선박)','허요','🚢'],
-['jegy','표, 티켓','예지','🎫'],
-['térkép','지도','테이르케이프','🗺️'],
+['autó','자동차','🚗'],
+['busz','버스','🚌'],
+['vonat','기차','🚆'],
+['villamos','트램, 전차','🚊'],
+['metró','지하철','🚇'],
+['bicikli','자전거','🚲'],
+['repülő','비행기','✈️'],
+['hajó','배 (선박)','🚢'],
+['jegy','표, 티켓','🎫'],
+['térkép','지도','🗺️'],
 // d17 집·사물
-['szoba','방','소버','🛋️'],
-['ajtó','문','어이토','🚪'],
-['ablak','창문','어블러크','🪟'],
-['asztal','탁자, 테이블','어스털','🪑'],
-['szék','의자','세이크','💺'],
-['ágy','침대','아지','🛏️'],
-['könyv','책','쾨니브','📕'],
-['telefon','전화, 휴대폰','텔레폰','📱'],
-['kulcs','열쇠','쿨치','🔑'],
-['pénz','돈','페인즈','💰'],
+['szoba','방','🛋️'],
+['ajtó','문','🚪'],
+['ablak','창문','🪟'],
+['asztal','탁자, 테이블','🪑'],
+['szék','의자','💺'],
+['ágy','침대','🛏️'],
+['könyv','책','📕'],
+['telefon','전화, 휴대폰','📱'],
+['kulcs','열쇠','🔑'],
+['pénz','돈','💰'],
 // d18 의문사·대명사
-['mi','무엇','미','❓'],
-['ki','누구','키','🕵️'],
-['hol','어디','홀','📍'],
-['mikor','언제','미코르','⏳'],
-['miért','왜','미에이르트','🤔'],
-['hogyan','어떻게','호존','🛠️'],
-['mennyi','얼마나, 몇','멘니','🔢'],
-['én','나','에인','🙋‍♂️'],
-['te','너','테','👉'],
-['ő','그, 그녀','외','👥'],
+['mi','무엇','❓'],
+['ki','누구','🕵️'],
+['hol','어디','📍'],
+['mikor','언제','⏳'],
+['miért','왜','🤔'],
+['hogyan','어떻게','🛠️'],
+['mennyi','얼마나, 몇','🔢'],
+['én','나','🙋‍♂️'],
+['te','너','👉'],
+['ő','그, 그녀','👥'],
 // d19 표현
-['elnézést','실례합니다','엘네이제이슈트','🙇'],
-['bocsánat','죄송합니다','보차너트','😔'],
-['egészségedre','건배! / 건강을 위하여','에게이스셰게드레','🥂'],
-['nem értem','이해하지 못했어요','넴 에이르템','😕'],
-['nem tudom','모르겠어요','넴 투돔','🤷'],
-['Hol van a mosdó?','화장실이 어디예요?','홀 번 어 모쉬도','🚻'],
-['Mennyibe kerül?','얼마예요?','멘니베 케륄','💶'],
-['segítség!','도와주세요!','셰기트셰이그','🆘'],
-['szeretlek','사랑해','세레틀레크','💕'],
-['jó étvágyat','맛있게 드세요','요 에이트바저트','🥄'],
+['elnézést','실례합니다','🙇'],
+['bocsánat','죄송합니다','😔'],
+['egészségedre','건배! / 건강을 위하여','🥂'],
+['nem értem','이해하지 못했어요','😕'],
+['nem tudom','모르겠어요','🤷'],
+['Hol van a mosdó?','화장실이 어디예요?','🚻'],
+['Mennyibe kerül?','얼마예요?','💶'],
+['segítség!','도와주세요!','🆘'],
+['szeretlek','사랑해','💕'],
+['jó étvágyat','맛있게 드세요','🥄'],
 // d20 언어·여행
-['Magyarország','헝가리 (나라)','머저로르사그','🇭🇺'],
-['Dél-Korea','대한민국','데일코레아','🇰🇷'],
-['magyar','헝가리의, 헝가리어','머저르','🏰'],
-['nyelv','언어 (혀 뜻도 있음)','녤브','💬'],
-['szó','단어','소','🔤'],
-['mondat','문장','몬더트','📝'],
-['kérdés','질문','케이르데이쉬','❔'],
-['válasz','대답','발러스','🗨️'],
-['külföldi','외국인, 외국의','퀼푈디','🌍'],
-['utazás','여행','우터자쉬','🧳'],
-].map((w,i)=>({id:i, hu:w[0], ko:w[1], pr:w[2], em:w[3], day:Math.floor(i/10)+1}));
+['Magyarország','헝가리 (나라)','🇭🇺'],
+['Dél-Korea','대한민국','🇰🇷'],
+['magyar','헝가리의, 헝가리어','🏰'],
+['nyelv','언어 (혀 뜻도 있음)','💬'],
+['szó','단어','🔤'],
+['mondat','문장','📝'],
+['kérdés','질문','❔'],
+['válasz','대답','🗨️'],
+['külföldi','외국인, 외국의','🌍'],
+['utazás','여행','🧳'],
+/* ----- 추가 팩 : Day 21–30 ----- */
+// d21 직업·일
+['munka','일, 직장','🧰'],
+['tanár','선생님','🧑‍🏫'],
+['orvos','의사','🧑‍⚕️'],
+['rendőr','경찰','👮'],
+['szakács','요리사','🧑‍🍳'],
+['diák','학생','🧑‍🎓'],
+['főnök','상사, 사장','🧑‍💼'],
+['kolléga','동료','👔'],
+['fizetés','월급, 급여','💵'],
+['iroda','사무실','🏢'],
+// d22 쇼핑·돈
+['ár','가격','💲'],
+['pénztár','계산대','🛎️'],
+['ingyen','무료로, 공짜로','🆓'],
+['akció','할인, 세일','🔖'],
+['forint','포린트 (헝가리 화폐)','🪙'],
+['bankkártya','신용카드, 체크카드','💳'],
+['készpénz','현금','💴'],
+['számla','계산서, 영수증','📄'],
+['nyitva','영업 중, 열림','🔓'],
+['zárva','닫음, 폐점','🔒'],
+// d23 헝가리 음식
+['gulyás','굴라시 (헝가리 수프)','🥘'],
+['pörkölt','푀르쾰트 (고기 스튜)','🍖'],
+['lángos','랑고시 (튀김빵)','🫓'],
+['paprika','파프리카, 고추','🌶️'],
+['hagyma','양파','🧅'],
+['krumpli','감자','🥔'],
+['rizs','쌀, 밥','🍚'],
+['tészta','파스타, 면','🍝'],
+['sütemény','케이크, 과자류','🍰'],
+['fagylalt','아이스크림','🍦'],
+// d24 동사 3
+['adni','주다','🎁'],
+['kapni','받다','📥'],
+['venni','사다','💸'],
+['hozni','가져오다','📦'],
+['vinni','가져가다','🚚'],
+['keresni','찾다, (돈을) 벌다','🔍'],
+['találni','발견하다, 찾아내다','🎯'],
+['nyitni','열다','🗝️'],
+['zárni','닫다, 잠그다','🔐'],
+['várni','기다리다','⌛'],
+// d25 동사 4
+['állni','서다, 서 있다','🧍‍♂️'],
+['ülni','앉다','🧘'],
+['feküdni','눕다','🛌'],
+['játszani','놀다, (게임을) 하다','🎮'],
+['énekelni','노래하다','🎤'],
+['táncolni','춤추다','💃'],
+['úszni','수영하다','🏊'],
+['sétálni','산책하다','🚶‍♀️'],
+['pihenni','쉬다','🌴'],
+['utazni','여행하다','🧭'],
+// d26 형용사 3
+['magas','높은, 키가 큰','🦒'],
+['alacsony','낮은, 키가 작은','📏'],
+['hosszú','긴','🐍'],
+['rövid','짧은','✂️'],
+['erős','강한','💪'],
+['gyenge','약한','🍃'],
+['tiszta','깨끗한','🧼'],
+['piszkos','더러운','🧹'],
+['tele','가득 찬','🍯'],
+['üres','빈, 비어 있는','🕳️'],
+// d27 도시·방향
+['jobbra','오른쪽으로','↪️'],
+['balra','왼쪽으로','↩️'],
+['egyenesen','똑바로, 직진으로','⬆️'],
+['közel','가까이','🤏'],
+['messze','멀리','🔭'],
+['itt','여기','🔻'],
+['ott','저기','🔺'],
+['híd','다리 (교량)','🌉'],
+['tér','광장','⛲'],
+['vár','성 (城)','🏯'],
+// d28 취미·문화
+['zene','음악','🎵'],
+['film','영화','🎬'],
+['sport','운동, 스포츠','⚽'],
+['foci','축구','🥅'],
+['könyvtár','도서관','📚'],
+['múzeum','박물관','🖼️'],
+['színház','극장','🎭'],
+['fénykép','사진','📷'],
+['ajándék','선물','🎀'],
+['ünnep','축제, 명절','🎉'],
+// d29 건강
+['beteg','아픈, 환자','🤒'],
+['egészséges','건강한','🍏'],
+['gyógyszer','약 (의약품)','💊'],
+['láz','열 (발열)','🌡️'],
+['fáj','아프다 (통증이 있다)','🤕'],
+['mentő','구급차','🚑'],
+['fogorvos','치과의사','😬'],
+['szemüveg','안경','👓'],
+['pihenés','휴식','😌'],
+['allergia','알레르기','🤧'],
+// d30 유용 표현 2
+['Hogy vagy?','어떻게 지내?','🙂'],
+['Jól vagyok','잘 지내요','😄'],
+['Hány óra van?','몇 시예요?','🕐'],
+['Nem baj','괜찮아요','🆗'],
+['persze','물론이죠','👌'],
+['talán','아마도','🎲'],
+['Egy pillanat','잠시만요','☝️'],
+['Beszélsz angolul?','영어 할 줄 알아요?','💭'],
+['Kérek egy kávét','커피 한 잔 주세요','🫖'],
+['Sok sikert!','행운을 빌어요!','🍀'],
+].map((w,i)=>({id:i, hu:w[0], ko:w[1], em:w[2], day:Math.floor(i/10)+1}));
 
-const PER_DAY=10, DAYS=W.length/PER_DAY, TEST_EVERY=5;
+const PER_DAY=10, TEST_EVERY=5, BASE_DAYS=20, PACK_DAYS=10;
 const KEY='tizszo_v1';
 
 /* ================= state ================= */
-const defState = ()=>({completedDays:0, wrongPool:[], testsTaken:[], testHistory:[]});
+const defState = ()=>({completedDays:0, wrongPool:[], testsTaken:[], testHistory:[], marks:{}, extraPacks:0});
 let state;
 try{ state = Object.assign(defState(), JSON.parse(localStorage.getItem(KEY)||'{}')); }
 catch(e){ state = defState(); }
 const save = ()=>localStorage.setItem(KEY, JSON.stringify(state));
 
-const currentDay = ()=>Math.min(state.completedDays+1, DAYS);
+const DAYS = ()=>BASE_DAYS + (state.extraPacks||0)*PACK_DAYS;   // 추가 팩을 받으면 30일로 확장
+const currentDay = ()=>Math.min(state.completedDays+1, DAYS());
 const testDue = ()=>state.completedDays>0 && state.completedDays%TEST_EVERY===0
   && !state.testsTaken.includes(state.completedDays/TEST_EVERY);
-const allDone = ()=>state.completedDays>=DAYS && !testDue();
+const allDone = ()=>state.completedDays>=DAYS() && !testDue();
+const unknownIds = ()=>Object.keys(state.marks).filter(k=>state.marks[k]===-1).map(Number);
+const knownCount = ()=>Object.keys(state.marks).filter(k=>state.marks[k]===1).length;
 const wordsOfDay = d=>W.slice((d-1)*PER_DAY, d*PER_DAY);
 const byId = id=>W[id];
 
@@ -426,20 +548,15 @@ const backbtn = document.getElementById('backbtn');
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-/* speech */
-let huVoice=null;
-function pickVoice(){ if(!('speechSynthesis' in window))return;
-  const v=speechSynthesis.getVoices().find(v=>(v.lang||'').toLowerCase().startsWith('hu'));
-  if(v)huVoice=v;
-}
-if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
-function speak(t){
-  if(!('speechSynthesis' in window))return;
-  const u=new SpeechSynthesisUtterance(t);
-  u.lang='hu-HU'; if(huVoice)u.voice=huVoice; u.rate=0.82;
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
-}
-window.speak=speak;
+/* 알아요(1)/몰라요(-1) 표시 토글 */
+window.cycleMark=function(id,btn){
+  const cur=state.marks[id]||0, nxt=cur===0?1:cur===1?-1:0;
+  if(nxt===0) delete state.marks[id]; else state.marks[id]=nxt;
+  save();
+  btn.className='mk'+(nxt===1?' known':nxt===-1?' unknown':'');
+  btn.textContent=nxt===1?'✓':nxt===-1?'✗':'–';
+  btn.title=nxt===1?'알아요':nxt===-1?'몰라요':'표시 없음';
+};
 
 function view(html, showBack){
   app.innerHTML=html;
@@ -450,20 +567,22 @@ backbtn.addEventListener('click',()=>renderHome());
 
 /* ================= home ================= */
 function renderHome(){
-  const day=currentDay(), learned=state.completedDays*PER_DAY;
-  const pct=Math.round(state.completedDays/DAYS*100);
+  const day=currentDay(), learned=state.completedDays*PER_DAY, total=DAYS()*PER_DAY;
+  const pct=Math.round(state.completedDays/DAYS()*100);
   const block=state.completedDays/TEST_EVERY;
+  const unk=unknownIds().length;
 
   let action='';
   if(allDone()){
     action=`<p class="center" style="font-size:2rem;margin:4px 0">🎉</p>
-      <p class="center"><b>200단어 완주! Gratulálok!</b></p>`;
+      <p class="center"><b>${total}단어 완주! Gratulálok!</b></p>`;
     if(state.wrongPool.length)
       action+=`<button class="big-btn danger-soft" id="go-wrongtest">오답 ${state.wrongPool.length}개 정리 테스트</button>`;
   }else if(testDue()){
+    const carried=state.wrongPool.length+unknownIds().filter(id=>id<(state.completedDays-TEST_EVERY)*PER_DAY).length;
     action=`<p class="muted center">Day ${state.completedDays-4}–${state.completedDays} 단어를 테스트해야<br>다음 학습이 열립니다.</p>
       <button class="big-btn" id="go-test">📝 테스트 ${block} 시작
-      ${state.wrongPool.length?`(+ 이전 오답 ${state.wrongPool.length}개)`:''}</button>`;
+      ${carried?`(+ 이월 단어)`:''}</button>`;
   }else{
     action=`<button class="big-btn" id="go-learn">📖 Day ${day} 학습 시작 — 오늘의 10단어</button>`;
   }
@@ -473,11 +592,13 @@ function renderHome(){
   view(`
   <section class="card">
     <h2>진행 현황</h2>
-    <div class="stats"><span>Day <b>${Math.min(state.completedDays,DAYS)}</b> / ${DAYS} 완료</span>
-      <span>배운 단어 <b>${learned}</b> / ${W.length}</span></div>
+    <div class="stats"><span>Day <b>${Math.min(state.completedDays,DAYS())}</b> / ${DAYS()} 완료</span>
+      <span>배운 단어 <b>${learned}</b> / ${total}</span></div>
     <div class="bar"><i style="width:${pct}%"></i></div>
     <div class="stats"><span>${allDone()?'완주':`다음 테스트까지 ${testDue()?0:nextTestIn}일`}</span>
-      <span class="${state.wrongPool.length?'':''}">오답 노트 <b>${state.wrongPool.length}</b>개</span></div>
+      <span>오답 노트 <b>${state.wrongPool.length}</b>개</span></div>
+    <div class="stats" style="margin-top:4px"><span>✓ 알아요 <b>${knownCount()}</b>개</span>
+      <span>✗ 몰라요 <b>${unk}</b>개</span></div>
   </section>
   <section class="card">${action}</section>
   ${state.completedDays>0?`
@@ -485,8 +606,14 @@ function renderHome(){
     <h2>복습 · 단어장</h2>
     <div class="row">
       <button class="big-btn secondary" id="go-vocab">📒 단어장</button>
-      ${state.wrongPool.length&&!allDone()?`<button class="big-btn danger-soft" id="go-wrongs">🔁 오답 보기</button>`:''}
+      ${unk&&!allDone()?`<button class="big-btn danger-soft" id="go-unknown">✗ 몰라요 단어</button>`:''}
     </div>
+  </section>`:''}
+  ${!state.extraPacks?`
+  <section class="card">
+    <h2>추가 단어</h2>
+    <p class="muted">기본 200단어에 이어 심화 100단어(직업 · 쇼핑 · 헝가리 음식 · 동사 · 방향 · 취미 · 건강 · 표현)를 더 받을 수 있어요. Day 21–30으로 이어지고 테스트도 똑같이 5일마다 진행됩니다.</p>
+    <button class="big-btn secondary" id="get-pack">🎒 추가 단어 100개 받기</button>
   </section>`:''}
   ${state.testHistory.length?`
   <section class="card">
@@ -501,8 +628,11 @@ function renderHome(){
   on('go-learn',()=>startLearn());
   on('go-test',()=>testIntro(block));
   on('go-wrongtest',()=>testIntro('wrong'));
-  on('go-vocab',()=>renderVocab(false));
-  on('go-wrongs',()=>renderVocab(true));
+  on('go-vocab',()=>renderVocab('all'));
+  on('go-unknown',()=>renderVocab('unknown'));
+  on('get-pack',()=>{
+    state.extraPacks=1; save(); renderHome();
+  });
 }
 
 /* ================= learn : 복습 → 카드 → 확인 퀴즈 ================= */
@@ -513,21 +643,26 @@ function startLearn(){
 }
 
 function wordRow(w, flagWrong){
+  const m=state.marks[w.id]||0;
   return `<div class="wrow${flagWrong?' is-wrong':''}">
     <span class="emoji">${w.em}</span>
-    <span class="txt"><span class="hu hu-w">${esc(w.hu)}</span><span class="pron">[${esc(w.pr)}]</span><br>
+    <span class="txt"><span class="hu hu-w">${esc(w.hu)}</span><br>
     <span class="ko-w">${esc(w.ko)}</span></span>
-    <button class="sp" onclick="speak('${esc(w.hu).replace(/'/g,"\\'")}')" aria-label="발음 듣기">🔊</button>
+    <button class="mk${m===1?' known':m===-1?' unknown':''}" onclick="cycleMark(${w.id},this)"
+      title="${m===1?'알아요':m===-1?'몰라요':'표시 없음'}">${m===1?'✓':m===-1?'✗':'–'}</button>
   </div>`;
 }
 
 function renderReview(day){
   const prev=wordsOfDay(day-1);
+  const unk=unknownIds().filter(id=>byId(id).day<day-1).map(byId);
   view(`
   <section class="card">
     <h2>Day ${day} · 시작 전 복습</h2>
     <p class="muted">어제 배운 단어를 한 번 훑고 시작하세요. 뜻을 가리고 먼저 떠올려 보면 더 좋아요.</p>
     <div class="review-list">${prev.map(w=>wordRow(w)).join('')}</div>
+    ${unk.length?`<p class="muted" style="margin-top:12px"><b>✗ 몰라요 표시 단어</b> — 다음 테스트에 나와요.</p>
+    <div class="review-list">${unk.map(w=>wordRow(w)).join('')}</div>`:''}
     <button class="big-btn" id="to-cards">오늘의 새 단어 보러 가기 →</button>
   </section>`,true);
   document.getElementById('to-cards').addEventListener('click',()=>renderCards(day));
@@ -547,15 +682,17 @@ function renderCards(day){
           <div class="fc-face">
             <div class="emoji">${w.em}</div>
             <div class="hu word">${esc(w.hu)}</div>
-            <div class="pron">[${esc(w.pr)}]</div>
-            <button class="speak" id="sp1">🔊 발음</button>
             <div class="hint">뜻을 먼저 떠올린 뒤, 탭해서 확인</div>
           </div>
           <div class="fc-face fc-back">
             <div class="emoji">${w.em}</div>
             <div class="meaning">${esc(w.ko)}</div>
-            <div class="pron hu">${esc(w.hu)} [${esc(w.pr)}]</div>
-            <div class="hint">탭하면 앞면으로</div>
+            <div class="muted hu">${esc(w.hu)}</div>
+            <div class="mark-row">
+              <button class="mk-btn no" id="mk-no">✗ 아직 몰라요</button>
+              <button class="mk-btn yes" id="mk-yes">✓ 알아요</button>
+            </div>
+            <div class="hint">표시하면 다음 카드로 넘어가요</div>
           </div>
         </div>
       </div>
@@ -569,14 +706,17 @@ function renderCards(day){
 
     const fc=document.getElementById('fc');
     const flip=()=>{flipped=!flipped;fc.classList.toggle('flipped',flipped);};
-    fc.addEventListener('click',e=>{ if(e.target.id!=='sp1') flip(); });
+    fc.addEventListener('click',e=>{ if(!e.target.classList.contains('mk-btn')) flip(); });
     fc.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();} });
-    document.getElementById('sp1').addEventListener('click',e=>{e.stopPropagation();speak(w.hu);});
-    document.getElementById('prev').addEventListener('click',()=>{if(idx>0){idx--;flipped=false;draw();}});
-    document.getElementById('next').addEventListener('click',()=>{
+    const advance=()=>{
       if(idx<words.length-1){idx++;maxSeen=Math.max(maxSeen,idx);flipped=false;draw();}
       else{maxSeen=words.length-1;draw();}
-    });
+    };
+    const mark=(m)=>{ state.marks[w.id]=m; save(); advance(); };
+    document.getElementById('mk-no').addEventListener('click',e=>{e.stopPropagation();mark(-1);});
+    document.getElementById('mk-yes').addEventListener('click',e=>{e.stopPropagation();mark(1);});
+    document.getElementById('prev').addEventListener('click',()=>{if(idx>0){idx--;flipped=false;draw();}});
+    document.getElementById('next').addEventListener('click',advance);
     const tq=document.getElementById('to-quiz');
     if(tq)tq.addEventListener('click',()=>dayQuiz(day));
   }
@@ -600,7 +740,6 @@ function dayQuiz(day){
       <div class="q-word">
         <div class="emoji">${w.em}</div>
         <div class="hu word">${esc(w.hu)}</div>
-        <button class="speak" onclick="speak('${esc(w.hu).replace(/'/g,"\\'")}')">🔊</button>
       </div>
       <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o.text)}</button>`).join('')}</div>
       <div class="q-feedback" id="fb"></div>
@@ -646,12 +785,13 @@ function finishDay(day, wrongCnt){
 }
 
 /* ================= test ================= */
-/* block: 1..4 → 해당 5일치 50단어 + 이전 오답 / 'wrong' → 오답만 */
+/* block: 1.. → 해당 5일치 50단어 + 이전 오답 + 몰라요 표시 / 'wrong' → 오답만 */
 function testWords(block){
   if(block==='wrong') return state.wrongPool.slice();
   const start=(block-1)*TEST_EVERY*PER_DAY, end=block*TEST_EVERY*PER_DAY;
   const ids=new Set(W.slice(start,end).map(w=>w.id));
   state.wrongPool.forEach(id=>ids.add(id));
+  unknownIds().forEach(id=>{ if(id<state.completedDays*PER_DAY) ids.add(id); });
   return [...ids];
 }
 
@@ -663,9 +803,9 @@ function testIntro(block){
   view(`
   <section class="card">
     <h2>${label}</h2>
-    <p class="muted">총 <b>${ids.length}문제</b> — ${isWrong?'지금까지 틀린 단어만 다시 봅니다.':`최근 5일 단어 50개${carried>0?` + 이전 테스트 오답 ${carried}개`:''}.`}<br>
+    <p class="muted">총 <b>${ids.length}문제</b> — ${isWrong?'지금까지 틀린 단어만 다시 봅니다.':`최근 5일 단어 50개${carried>0?` + 이전 오답·몰라요 표시 ${carried}개`:''}.`}<br>
     헝가리어→뜻, 뜻→헝가리어가 섞여 나옵니다.<br>
-    틀린 단어는 다음 테스트에 다시 포함됩니다.</p>
+    틀린 단어는 다음 테스트에 다시 나오고, 몰라요 표시는 맞히면 자동으로 지워집니다.</p>
     <button class="big-btn" id="go">시작</button>
   </section>`,true);
   document.getElementById('go').addEventListener('click',()=>runTest(block,ids));
@@ -680,17 +820,16 @@ function runTest(block, ids){
     const w=byId(order[i]);
     const dir=Math.random()<0.5?'ko':'hu';   // ko: hu→뜻 / hu: 뜻→hu
     const opts=makeOptions(w,dir);
-    const isCarried=block!=='wrong'&&state.wrongPool.includes(w.id);
+    const isCarried=block!=='wrong'&&(state.wrongPool.includes(w.id)||state.marks[w.id]===-1);
     view(`
     <section>
       <div class="q-top"><span>${block==='wrong'?'오답 테스트':'테스트 '+block}
-        ${isCarried?'<span class="pill bad">이월 오답</span>':''}</span>
+        ${isCarried?'<span class="pill bad">이월</span>':''}</span>
         <span>${i+1} / ${order.length}</span></div>
       <div class="q-word">
         ${dir==='ko'?`
           <div class="emoji">${w.em}</div>
           <div class="hu word">${esc(w.hu)}</div>
-          <button class="speak" onclick="speak('${esc(w.hu).replace(/'/g,"\\'")}')">🔊</button>
           <p class="muted">뜻을 고르세요</p>`
         :`
           <div class="emoji">${w.em}</div>
@@ -711,7 +850,6 @@ function runTest(block, ids){
         if(ok){ right.push(w.id); fb.textContent='정답!'; fb.className='q-feedback ok'; }
         else{ wrong.push(w.id); btn.classList.add('wrong');
           fb.textContent=`오답 — ${w.hu} = ${w.ko}`; fb.className='q-feedback no'; }
-        if(dir==='hu') speak(w.hu);
         i++;
         setTimeout(next, ok?650:1800);
       });
@@ -724,6 +862,8 @@ function finishTest(block, right, wrong){
   // 오답 이월 규칙: 맞힌 단어는 오답 노트에서 제거, 틀린 단어는 추가
   state.wrongPool=state.wrongPool.filter(id=>!right.includes(id));
   wrong.forEach(id=>{ if(!state.wrongPool.includes(id)) state.wrongPool.push(id); });
+  // 테스트에서 맞힌 단어는 '몰라요' 표시 자동 해제
+  right.forEach(id=>{ if(state.marks[id]===-1) delete state.marks[id]; });
   const total=right.length+wrong.length;
   const label=block==='wrong'?'오답 정리':`테스트 ${block}`;
   if(block!=='wrong'&&!state.testsTaken.includes(block)) state.testsTaken.push(block);
@@ -744,7 +884,8 @@ function finishTest(block, right, wrong){
 /* 보기 4개 생성: dir==='ko' → 뜻 고르기 / 'hu' → 헝가리어 고르기 */
 function makeOptions(w, dir){
   const field=dir==='ko'?'ko':'hu';
-  const wrongPool=shuffle(W.filter(x=>x.id!==w.id && x[field]!==w[field])).slice(0,3);
+  const limit=DAYS()*PER_DAY;   // 잠긴 팩의 단어는 보기에 쓰지 않음
+  const wrongPool=shuffle(W.filter(x=>x.id!==w.id && x.id<limit && x[field]!==w[field])).slice(0,3);
   return shuffle([
     {text:w[field], correct:true},
     ...wrongPool.map(x=>({text:x[field], correct:false})),
@@ -752,14 +893,16 @@ function makeOptions(w, dir){
 }
 
 /* ================= vocab list ================= */
-function renderVocab(onlyWrong){
-  const maxDay=Math.max(state.completedDays, state.completedDays<DAYS?currentDay():DAYS);
-  let html='';
-  if(onlyWrong){
-    html=`<section class="card"><h2>오답 노트 (${state.wrongPool.length})</h2>
-      <div class="wlist">${state.wrongPool.map(id=>wordRow(byId(id),true)).join('')||'<p class="muted">비어 있어요!</p>'}</div></section>`;
-  }else{
-    for(let d=1;d<=DAYS;d++){
+/* filter: 'all' | 'known' | 'unknown' | 'wrong' */
+function renderVocab(filter){
+  const maxDay=Math.min(currentDay(), DAYS());
+  const learnedWords=W.filter(w=>w.day<=maxDay && w.id<DAYS()*PER_DAY);
+  const chips=[['all','전체'],['known','✓ 알아요'],['unknown','✗ 몰라요'],['wrong','오답']];
+  let html=`<div class="chips">${chips.map(([k,l])=>
+    `<button class="chip${filter===k?' on':''}" data-f="${k}">${l}</button>`).join('')}</div>`;
+
+  if(filter==='all'){
+    for(let d=1;d<=DAYS();d++){
       if(d>maxDay){
         html+=`<div class="day-group"><h3>Day ${d}</h3><div class="locked">🔒 아직 잠겨 있어요</div></div>`;
         continue;
@@ -768,8 +911,17 @@ function renderVocab(onlyWrong){
         ${d<=state.completedDays?'<span class="pill">완료</span>':'<span class="pill" style="background:var(--surface2);color:var(--ink-soft)">오늘</span>'}</h3>
         <div class="wlist">${wordsOfDay(d).map(w=>wordRow(w,state.wrongPool.includes(w.id))).join('')}</div></div>`;
     }
+  }else{
+    const list = filter==='wrong'
+      ? state.wrongPool.map(byId)
+      : learnedWords.filter(w=>state.marks[w.id]===(filter==='known'?1:-1));
+    const title = filter==='wrong'?'오답 노트':filter==='known'?'알아요 표시':'몰라요 표시';
+    html+=`<section class="card"><h2>${title} (${list.length})</h2>
+      <div class="wlist">${list.map(w=>wordRow(w,filter==='wrong')).join('')||'<p class="muted">비어 있어요!</p>'}</div></section>`;
   }
   view(html,true);
+  document.querySelectorAll('.chip').forEach(c=>
+    c.addEventListener('click',()=>renderVocab(c.dataset.f)));
 }
 
 /* ================= reset ================= */
